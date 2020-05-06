@@ -81,21 +81,3 @@ test('hidden overflow horizontal and vertical', t => {
 })
 
 
-test('overflow scroll 1,5 offset', t => {
-	const output = renderToString(<Box width={33} flexDirection="column">
-		<Box width="100%">01234567890123456789012345678901</Box>
-		<Box width="100%" flexDirection="row">
-			<Box width={10} paddingRight={1}>Left__Left</Box>
-			<Box overflow='scroll' width={5} height={2} scrollOffsetTop={1} scrollOffsetLeft={5}><Text>xxxxxline0xxxxxxxx{'\n'}xxxxxline1xxxxxxxx{'\n'}xxxxxline2xxxxxxxx</Text></Box>
-			<Box overflow='hidden' width={5} height={2}><Text>XXXXXoo</Text></Box>
-			<Box width={10} paddingLeft={1}>RightRight</Box>
-		</Box>
-		<Box width="100%">01234567890123456789012345678901</Box>
-	</Box>)
-
-	const expected = "01234567890123456789012345678901\n" +
-		"Left__Left line1     XXXXXRightRight\n" +
-		"           line2\n" +
-		"01234567890123456789012345678901";
-	t.is(output, expected, `actual was:\n***\n${output}\n***`);
-})

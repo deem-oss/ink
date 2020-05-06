@@ -3,6 +3,9 @@ import {wrapText} from './wrap-text';
 import {getMaxWidth} from './get-max-width';
 import {DOMNode, DOMElement} from './dom';
 import Yoga from 'yoga-layout-prebuilt';
+import {HideOverflowOptions, ScrollOffsets} from "./overflow";
+import stringLength from "string-length";
+import sliceAnsi from "slice-ansi";
 
 export const openRegionTag = (name: string) => '\u001B_' + name + '\u001B\\';
 export const closeRegionTag = (name: string) => '\u001B_/' + name + '\u001B\\';
@@ -85,27 +88,9 @@ interface RenderNodeToOutputOptions {
 	openRegion?: string;
 	closeRegion?: string;
 	hideOverflow?: HideOverflowOptions;
-	scrollOffsets?: ScrollOffsets;
-}
-
-interface HideOverflowOptions {
-	readonly left: number;
-	readonly right: number;
-	readonly top: number;
-	readonly bottom: number;
-	readonly width: number;
-	readonly height: number;
-}
-
-interface ScrollOffsets {
-	readonly offsetTop: number;
-	readonly offsetLeft: number;
 }
 
 export interface OutputWriteOptions {
-	transformers: OutputTransformer[];
-	hideOverflow?: HideOverflowOptions;
-	scrollOffsets?: ScrollOffsets;
 }
 
 export type OutputTransformer = (s: string) => string;
@@ -128,7 +113,6 @@ export const renderNodeToOutput = (
 		openRegion = '',
 		closeRegion = '',
 		hideOverflow
-		//scrollOffsets = { offsetTop: 0, offsetLeft: 0}
 	} = options;
 
 	if (skipStaticElements && node.unstable__static) {
@@ -139,8 +123,8 @@ export const renderNodeToOutput = (
 
 	if (yogaNode) {
 		// Left and top positions in Yoga are relative to their parent node
+
 		const localScrollOffsets = yogaNode.getOverflow() == Yoga.OVERFLOW_SCROLL ? ((yogaNode as any).scrollOffsets as ScrollOffsets) : { offsetTop: 0, offsetLeft: 0};
-	//	scrollOffsets = { offsetTop: scrollOffsets.offsetTop + localScrollOffsets.offsetTop, offsetLeft: scrollOffsets.offsetLeft + localScrollOffsets.offsetLeft }
 
 		const tempLeft= offsetX + yogaNode.getComputedLeft();
 		const tempTop = offsetY + yogaNode.getComputedTop();
@@ -158,13 +142,63 @@ export const renderNodeToOutput = (
 
 		const applyRegion = (text: string) => `${openRegion}${text}${closeRegion}`;
 
+		const writeAsLines = (output: OutputWriter, x: number, y: number, text: string, hideOverflow: HideOverflowOptions, transformers: OutputTransformer[]) => {
+			if (!text) {
+				return;
+			}
+
+			const lines = text.split('\n');
+
+			lines.forEach((line, index) => {
+				const actualY = y + index;
+
+				for (const transformer of transformers) {
+					line = transformer(line);
+				}
+
+				const length = stringLength(line);
+
+				let inBounds = true;
+				if (hideOverflow) {
+					const viewPortTop = hideOverflow.top;
+					const viewPortBottom = viewPortTop + hideOverflow.height - 1;
+
+					const viewPortLeft = hideOverflow.left;
+					const viewPortRight = viewPortLeft + hideOverflow.width - 1;
+					const textLeft = x;
+					const textRight = x + length - 1;
+
+					// is text anywhere in viewport?
+					inBounds = actualY >= viewPortTop && actualY <= viewPortBottom &&
+						!(textRight < viewPortLeft || textLeft > viewPortRight);
+
+					if (inBounds) {
+						// for text partially in viewport horizontally
+						let sliceStart = 0;
+						if (textLeft < viewPortLeft) {
+							sliceStart = viewPortLeft - textLeft;
+						}
+						const sliceEnd = sliceStart + Math.min(length - sliceStart, viewPortRight - viewPortLeft + 1);
+
+						if (sliceStart > 0 || sliceEnd < length) {
+							line = sliceAnsi(line, sliceStart, sliceEnd);
+						}
+					}
+				}
+
+				if (inBounds) {
+					output.write(x, actualY, line, {});
+				}
+			})
+		}
+
 		// Transformers are functions that transform final text output of each component
 		// See Output class for logic that applies transformers
 		let newTransformers = transformers;
 
 		// Text nodes
 		if (node.nodeName === '#text') {
-			output.write(x, y, applyRegion(node.nodeValue), {transformers: newTransformers});
+			writeAsLines(output, x, y, applyRegion(node.nodeValue), hideOverflow, newTransformers);
 			return;
 		}
 
@@ -196,7 +230,7 @@ export const renderNodeToOutput = (
 				}
 			}
 
-			output.write(x, y, applyRegion(text), {transformers: newTransformers, hideOverflow});
+			writeAsLines(output, x, y, applyRegion(text), hideOverflow, newTransformers);
 			return;
 		}
 
@@ -216,7 +250,7 @@ export const renderNodeToOutput = (
 				}
 			}
 
-			output.write(x, y, applyRegion(text), {transformers: newTransformers, hideOverflow});
+			writeAsLines(output, x, y, applyRegion(text), hideOverflow, newTransformers);
 			return;
 		}
 

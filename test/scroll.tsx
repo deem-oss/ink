@@ -63,4 +63,22 @@ test('scroll test', t => {
 	t.is(output, expected, `actual was:\n***\n${output}\n***`);
 });
 
+test('overflow scroll 1,5 offset', t => {
+	const output = renderToString(<Box width={40} flexDirection="column">
+		<Box width={40}>0123456789012345678901234567890123456789</Box>
+		<Box width={40} flexDirection="row">
+			<Box width={5} flexShrink={0} flexGrow={1}>Left</Box>
+			<Box overflow='scroll' width={5} height={2} scrollOffsetTop={1} scrollOffsetLeft={5} flexShrink={0} flexGrow={0}><Text>xxxxxline0yayxx{'\n'}xxxxxline1yayxxxx{'\n'}xxxxxline2yayxxxx</Text></Box>
+			<Box overflow='hidden' width={5} height={2} flexShrink={0} flexGrow={0}><Text>XXXXXoooo</Text></Box>
+			<Box width={5} flexShrink={0} flexGrow={1} justifyContent="flex-end">Right</Box>
+		</Box>
+		<Box width={40}>0123456789012345678901234567890123456789</Box>
+	</Box>)
 
+	const expected = "0123456789012345678901234567890123456789\n" +
+				 	 "Left      line1     XXXXX          Right\n" +
+					 "          line2\n" +
+					 "0123456789012345678901234567890123456789";
+
+	t.is(output, expected, `actual was:\n***\n${output}\n***`);
+})

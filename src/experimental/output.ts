@@ -1,6 +1,7 @@
 import sliceAnsi from 'slice-ansi';
 import stringLength from 'string-length';
 import {OutputWriter, OutputWriteOptions, OutputTransformer} from '../render-node-to-output';
+import {HideOverflowOptions, ScrollOffsets} from "../overflow";
 
 /**
  * "Virtual" output class
@@ -19,8 +20,7 @@ interface OutputConstructorOptions {
 interface Writes {
 	x: number;
 	y: number;
-	text: string;
-	transformers: OutputTransformer[];
+	line: string;
 }
 
 export class Output implements OutputWriter {
@@ -37,14 +37,12 @@ export class Output implements OutputWriter {
 		this.height = height;
 	}
 
-	write(x: number, y: number, text: string, options: OutputWriteOptions) {
-		const {transformers} = options;
-
-		if (!text) {
+	write(x: number, y: number, line: string, options: OutputWriteOptions) {
+		if (!line) {
 			return;
 		}
 
-		this.writes.push({x, y, text, transformers});
+		this.writes.push({x, y, line: line});
 	}
 
 	get() {
@@ -55,31 +53,20 @@ export class Output implements OutputWriter {
 		}
 
 		for (const write of this.writes) {
-			const {x, y, text, transformers} = write;
-			const lines = text.split('\n');
-			let offsetY = 0;
+			const {x, y, line} = write;
 
-			for (let line of lines) {
-				const currentLine = output[y + offsetY];
+			const currentLine = output[y];
 
-				// Line can be missing if `text` is taller than height of pre-initialized `this.output`
-				if (!currentLine) {
-					continue;
-				}
-
-				const length = stringLength(line);
-
-				for (const transformer of transformers) {
-					line = transformer(line);
-				}
-
-				output[y + offsetY] =
-					sliceAnsi(currentLine, 0, x) +
-					line +
-					sliceAnsi(currentLine, x + length);
-
-				offsetY++;
+			// Line can be missing if `text` is taller than height of pre-initialized `this.output`
+			if (!currentLine) {
+				continue;
 			}
+
+			const length = stringLength(line);
+
+			output[y] = sliceAnsi(currentLine, 0, x) +
+						line +
+						sliceAnsi(currentLine, x + length);
 		}
 
 		// eslint-disable-next-line unicorn/prefer-trim-start-end
