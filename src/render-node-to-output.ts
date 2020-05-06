@@ -137,6 +137,10 @@ export const renderNodeToOutput = (
 
 	const {yogaNode} = node;
 
+	if (hideOverflow) {
+		const s = "aa";
+	}
+
 	if (yogaNode) {
 		// Left and top positions in Yoga are relative to their parent node
 		const localScrollOffsets = yogaNode.getOverflow() == Yoga.OVERFLOW_SCROLL ? ((yogaNode as any).scrollOffsets as ScrollOffsets) : { offsetTop: 0, offsetLeft: 0};
@@ -148,20 +152,6 @@ export const renderNodeToOutput = (
 		const tempHeight = yogaNode.getComputedHeight();
 		const tempRight = tempLeft + tempWidth - 1;
 		const tempBottom = tempTop + tempHeight - 1;
-
-		/*
-
-		     +--------------------------------+
-		     |
-		     |   +----------+
-		     | ab|defg
-		     | +-|---+
-		     |a|cdefg|
-		     | +-----+
-		     |   |
-		     |   +----------|
-		 */
-
 
 		if (yogaNode.getOverflow() == Yoga.OVERFLOW_HIDDEN || yogaNode.getOverflow() == Yoga.OVERFLOW_SCROLL) {
 			hideOverflow = { left: tempLeft, right: tempRight, top: tempTop, bottom: tempBottom, width: tempWidth, height: tempHeight };
@@ -235,6 +225,7 @@ export const renderNodeToOutput = (
 		}
 
 		// Nodes that have other nodes as children
+		// @ts-ignore
 		for (const [index, childNode] of node.childNodes.entries()) {
 			renderNodeToOutput(childNode, output, {
 				offsetX: x,
