@@ -137,10 +137,6 @@ export const renderNodeToOutput = (
 
 	const {yogaNode} = node;
 
-	if (hideOverflow) {
-		const s = "aa";
-	}
-
 	if (yogaNode) {
 		// Left and top positions in Yoga are relative to their parent node
 		const localScrollOffsets = yogaNode.getOverflow() == Yoga.OVERFLOW_SCROLL ? ((yogaNode as any).scrollOffsets as ScrollOffsets) : { offsetTop: 0, offsetLeft: 0};
