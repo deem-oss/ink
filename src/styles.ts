@@ -54,9 +54,20 @@ export interface DimensionStyles {
 	minHeight?: number | string;
 }
 
+export interface OverflowStyles {
+	overflow?: 'visible' | 'hidden' | 'scroll'
+}
+
+export interface ScrollStyles {
+	scrollOffsetTop?: number,
+	scrollOffsetLeft?: number
+}
+
 export type Styles = PaddingStyles &
 MarginStyles &
 FlexStyles &
 DimensionStyles &
 PositionStyles &
-WrapTextStyles;
+WrapTextStyles &
+OverflowStyles &
+ScrollStyles;

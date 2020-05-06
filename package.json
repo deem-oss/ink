@@ -1,13 +1,13 @@
 {
-	"name": "@bigtest/ink",
+	"name": "@deem-oss/ink",
 	"version": "2.7.1",
 	"description": "React for CLI",
 	"license": "MIT",
-	"repository": "vadimdemedes/ink",
+	"repository": "deem-oss/ink",
 	"author": {
-		"name": "vdemedes",
-		"email": "vdemedes@gmail.com",
-		"url": "https://github.com/vadimdemedes"
+		"name": "apatrida",
+		"email": "jayson.minard@gmail.com",
+		"url": "https://github.com/apatrida"
 	},
 	"main": "build",
 	"types": "build/index.d.ts",

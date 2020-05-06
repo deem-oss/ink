@@ -2,6 +2,7 @@ import widestLine from 'widest-line';
 import {wrapText} from './wrap-text';
 import {getMaxWidth} from './get-max-width';
 import {DOMNode, DOMElement} from './dom';
+import Yoga from 'yoga-layout-prebuilt';
 
 export const openRegionTag = (name: string) => '\u001B_' + name + '\u001B\\';
 export const closeRegionTag = (name: string) => '\u001B_/' + name + '\u001B\\';
@@ -83,10 +84,28 @@ interface RenderNodeToOutputOptions {
 	skipStaticElements: boolean;
 	openRegion?: string;
 	closeRegion?: string;
+	hideOverflow?: HideOverflowOptions;
+	scrollOffsets?: ScrollOffsets;
+}
+
+interface HideOverflowOptions {
+	readonly left: number;
+	readonly right: number;
+	readonly top: number;
+	readonly bottom: number;
+	readonly width: number;
+	readonly height: number;
+}
+
+interface ScrollOffsets {
+	readonly offsetTop: number;
+	readonly offsetLeft: number;
 }
 
 export interface OutputWriteOptions {
 	transformers: OutputTransformer[];
+	hideOverflow?: HideOverflowOptions;
+	scrollOffsets?: ScrollOffsets;
 }
 
 export type OutputTransformer = (s: string) => string;
@@ -107,7 +126,9 @@ export const renderNodeToOutput = (
 		transformers = [],
 		skipStaticElements,
 		openRegion = '',
-		closeRegion = ''
+		closeRegion = '',
+		hideOverflow
+		//scrollOffsets = { offsetTop: 0, offsetLeft: 0}
 	} = options;
 
 	if (skipStaticElements && node.unstable__static) {
@@ -118,8 +139,36 @@ export const renderNodeToOutput = (
 
 	if (yogaNode) {
 		// Left and top positions in Yoga are relative to their parent node
-		const x = offsetX + yogaNode.getComputedLeft();
-		const y = offsetY + yogaNode.getComputedTop();
+		const localScrollOffsets = yogaNode.getOverflow() == Yoga.OVERFLOW_SCROLL ? ((yogaNode as any).scrollOffsets as ScrollOffsets) : { offsetTop: 0, offsetLeft: 0};
+	//	scrollOffsets = { offsetTop: scrollOffsets.offsetTop + localScrollOffsets.offsetTop, offsetLeft: scrollOffsets.offsetLeft + localScrollOffsets.offsetLeft }
+
+		const tempLeft= offsetX + yogaNode.getComputedLeft();
+		const tempTop = offsetY + yogaNode.getComputedTop();
+		const tempWidth = yogaNode.getComputedWidth()
+		const tempHeight = yogaNode.getComputedHeight();
+		const tempRight = tempLeft + tempWidth - 1;
+		const tempBottom = tempTop + tempHeight - 1;
+
+		/*
+
+		     +--------------------------------+
+		     |
+		     |   +----------+
+		     | ab|defg
+		     | +-|---+
+		     |a|cdefg|
+		     | +-----+
+		     |   |
+		     |   +----------|
+		 */
+
+
+		if (yogaNode.getOverflow() == Yoga.OVERFLOW_HIDDEN || yogaNode.getOverflow() == Yoga.OVERFLOW_SCROLL) {
+			hideOverflow = { left: tempLeft, right: tempRight, top: tempTop, bottom: tempBottom, width: tempWidth, height: tempHeight };
+		}
+
+		const x = tempLeft - localScrollOffsets.offsetLeft;
+		const y = tempTop - localScrollOffsets.offsetTop;
 
 		const applyRegion = (text: string) => `${openRegion}${text}${closeRegion}`;
 
@@ -161,7 +210,7 @@ export const renderNodeToOutput = (
 				}
 			}
 
-			output.write(x, y, applyRegion(text), {transformers: newTransformers});
+			output.write(x, y, applyRegion(text), {transformers: newTransformers, hideOverflow});
 			return;
 		}
 
@@ -181,7 +230,7 @@ export const renderNodeToOutput = (
 				}
 			}
 
-			output.write(x, y, applyRegion(text), {transformers: newTransformers});
+			output.write(x, y, applyRegion(text), {transformers: newTransformers, hideOverflow});
 			return;
 		}
 
@@ -199,7 +248,8 @@ export const renderNodeToOutput = (
 				closeRegion:
 					index === node.childNodes.length - 1 && node.unstable__regionName ?
 						closeRegionTag(node.unstable__regionName) :
-						undefined
+						undefined,
+				hideOverflow
 			});
 		}
 	}
