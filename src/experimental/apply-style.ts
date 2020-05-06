@@ -6,7 +6,7 @@ import {
 	PaddingStyles,
 	FlexStyles,
 	DimensionStyles,
-	Styles
+	Styles, OverflowStyles, ScrollStyles
 } from '../styles';
 
 const applyPositionStyles = (node: Yoga.YogaNode, style: PositionStyles) => {
@@ -155,10 +155,38 @@ const applyDimensionStyles = (node: YogaNode, style: DimensionStyles) => {
 	}
 };
 
+
+const applyOverflowStyles = (node: Yoga.YogaNode, style: OverflowStyles) => {
+	if (style.overflow !== undefined) {
+		// declare const OVERFLOW_VISIBLE: 0;
+		// declare const OVERFLOW_HIDDEN: 1;
+		// declare const OVERFLOW_SCROLL: 2;
+		if (style.overflow === 'visible') {
+			node.setOverflow(Yoga.OVERFLOW_VISIBLE)
+		} else if (style.overflow === 'hidden') {
+			node.setOverflow(Yoga.OVERFLOW_HIDDEN)
+		} else if (style.overflow === 'scroll') {
+			node.setOverflow(Yoga.OVERFLOW_SCROLL)
+		} else {
+			// not implemented
+			node.setOverflow(Yoga.OVERFLOW_VISIBLE)
+		}
+	}
+}
+
+const applyScrollStyles = (node: Yoga.YogaNode, style: ScrollStyles) => {
+	const offsetLeft = style.scrollOffsetLeft || 0;
+	const offsetTop = style.scrollOffsetTop || 0;
+
+	(node as any).scrollOffsets = { offsetTop, offsetLeft };
+}
+
 export const applyStyle = (node: YogaNode, style: Styles = {}) => {
 	applyPositionStyles(node, style);
 	applyMarginStyles(node, style);
 	applyPaddingStyles(node, style);
 	applyFlexStyles(node, style);
 	applyDimensionStyles(node, style);
+	applyOverflowStyles(node, style);
+	applyScrollStyles(node, style);
 };
