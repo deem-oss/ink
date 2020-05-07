@@ -1,6 +1,6 @@
 import stringLength from 'string-length';
 import sliceAnsi from 'slice-ansi';
-import {OutputWriteOptions, OutputWriter} from './render-node-to-output';
+import {OutputWriter} from './render-node-to-output';
 
 interface OutputConstructorOptions {
 	width: number;
@@ -30,7 +30,7 @@ export class Output implements OutputWriter {
 		this.output = output;
 	}
 
-	write(x: number, y: number, line: string, options: OutputWriteOptions) {
+	write(x: number, y: number, line: string) {
 		if (!line) {
 			return;
 		}

@@ -90,13 +90,10 @@ interface RenderNodeToOutputOptions {
 	hideOverflow?: HideOverflowOptions;
 }
 
-export interface OutputWriteOptions {
-}
-
 export type OutputTransformer = (s: string) => string;
 
 export interface OutputWriter {
-	write(x: number, y: number, text: string, options: OutputWriteOptions): void;
+	write(x: number, y: number, text: string): void;
 }
 
 // After nodes are laid out, render each to output object, which later gets rendered to terminal
@@ -142,7 +139,7 @@ export const renderNodeToOutput = (
 
 		const applyRegion = (text: string) => `${openRegion}${text}${closeRegion}`;
 
-		const writeAsLines = (output: OutputWriter, x: number, y: number, text: string, hideOverflow: HideOverflowOptions, transformers: OutputTransformer[]) => {
+		const writeAsLines = (output: OutputWriter, x: number, y: number, text: string, hideOverflow?: HideOverflowOptions, transformers?: OutputTransformer[]) => {
 			if (!text) {
 				return;
 			}
@@ -152,8 +149,10 @@ export const renderNodeToOutput = (
 			lines.forEach((line, index) => {
 				const actualY = y + index;
 
-				for (const transformer of transformers) {
-					line = transformer(line);
+				if (transformers) {
+					for (const transformer of transformers) {
+						line = transformer(line);
+					}
 				}
 
 				const length = stringLength(line);
@@ -187,7 +186,7 @@ export const renderNodeToOutput = (
 				}
 
 				if (inBounds) {
-					output.write(x, actualY, line, {});
+					output.write(x, actualY, line);
 				}
 			})
 		}

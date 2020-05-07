@@ -1,7 +1,6 @@
 import sliceAnsi from 'slice-ansi';
 import stringLength from 'string-length';
-import {OutputWriter, OutputWriteOptions, OutputTransformer} from '../render-node-to-output';
-import {HideOverflowOptions, ScrollOffsets} from "../overflow";
+import {OutputWriter} from '../render-node-to-output';
 
 /**
  * "Virtual" output class
@@ -37,7 +36,7 @@ export class Output implements OutputWriter {
 		this.height = height;
 	}
 
-	write(x: number, y: number, line: string, options: OutputWriteOptions) {
+	write(x: number, y: number, line: string) {
 		if (!line) {
 			return;
 		}
