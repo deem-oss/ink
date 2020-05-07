@@ -11,6 +11,10 @@ export interface WrapTextStyles {
 
 export interface PositionStyles {
 	position?: 'absolute' | 'relative';
+	positionTop?: number;
+	positionLeft?: number;
+	positionRight?: number;
+	positionBottom?: number;
 }
 
 export interface MarginStyles {

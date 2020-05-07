@@ -1,5 +1,40 @@
 import Yoga from 'yoga-layout-prebuilt';
-import {Styles, FlexStyles, PaddingStyles, DimensionStyles, OverflowStyles, ScrollStyles} from './styles';
+import {
+	Styles,
+	FlexStyles,
+	PaddingStyles,
+	DimensionStyles,
+	OverflowStyles,
+	ScrollStyles,
+	PositionStyles
+} from './styles';
+
+
+const applyPositionStyles = (node: Yoga.YogaNode, style: PositionStyles) => {
+	if (!style.position) {
+		node.setPositionType(Yoga.POSITION_TYPE_RELATIVE);
+	}
+
+	if (style.position === 'absolute') {
+		node.setPositionType(Yoga.POSITION_TYPE_ABSOLUTE);
+	}
+
+	if (style.positionBottom) {
+		node.setPosition(Yoga.EDGE_BOTTOM, style.positionBottom);
+	}
+
+	if (style.positionLeft) {
+		node.setPosition(Yoga.EDGE_LEFT, style.positionLeft);
+	}
+
+	if (style.positionRight) {
+		node.setPosition(Yoga.EDGE_RIGHT, style.positionRight);
+	}
+
+	if (style.positionTop) {
+		node.setPosition(Yoga.EDGE_TOP, style.positionTop);
+	}
+}
 
 const applyMarginStyles = (node: Yoga.YogaNode, style: Styles) => {
 	if (style.margin) {
@@ -185,7 +220,9 @@ const applyScrollStyles = (node: Yoga.YogaNode, style: ScrollStyles) => {
 	(node as any).scrollOffsets = { offsetTop, offsetLeft };
 }
 
+
 export const applyStyles = (node: Yoga.YogaNode, style: Styles = {}) => {
+	applyPositionStyles(node, style);
 	applyMarginStyles(node, style);
 	applyPaddingStyles(node, style);
 	applyFlexStyles(node, style);

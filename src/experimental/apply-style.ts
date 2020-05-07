@@ -17,7 +17,23 @@ const applyPositionStyles = (node: Yoga.YogaNode, style: PositionStyles) => {
 	if (style.position === 'absolute') {
 		node.setPositionType(Yoga.POSITION_TYPE_ABSOLUTE);
 	}
-};
+
+	if (style.positionBottom) {
+		node.setPosition(Yoga.EDGE_BOTTOM, style.positionBottom);
+	}
+
+	if (style.positionLeft) {
+		node.setPosition(Yoga.EDGE_LEFT, style.positionLeft);
+	}
+
+	if (style.positionRight) {
+		node.setPosition(Yoga.EDGE_RIGHT, style.positionRight);
+	}
+
+	if (style.positionTop) {
+		node.setPosition(Yoga.EDGE_TOP, style.positionTop);
+	}
+}
 
 const applyMarginStyles = (node: Yoga.YogaNode, style: MarginStyles) => {
 	node.setMargin(
@@ -180,6 +196,8 @@ const applyScrollStyles = (node: Yoga.YogaNode, style: ScrollStyles) => {
 
 	(node as any).scrollOffsets = { offsetTop, offsetLeft };
 }
+
+
 
 export const applyStyle = (node: YogaNode, style: Styles = {}) => {
 	applyPositionStyles(node, style);
