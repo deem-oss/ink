@@ -88,12 +88,13 @@ interface RenderNodeToOutputOptions {
 	openRegion?: string;
 	closeRegion?: string;
 	hideOverflow?: HideOverflowOptions;
+	defaultZIndex?: number;
 }
 
 export type OutputTransformer = (s: string) => string;
 
 export interface OutputWriter {
-	write(x: number, y: number, text: string): void;
+	write(x: number, y: number, z: number, text: string): void;
 }
 
 // After nodes are laid out, render each to output object, which later gets rendered to terminal
@@ -109,7 +110,8 @@ export const renderNodeToOutput = (
 		skipStaticElements,
 		openRegion = '',
 		closeRegion = '',
-		hideOverflow
+		hideOverflow,
+		defaultZIndex = 0
 	} = options;
 
 	if (skipStaticElements && node.unstable__static) {
@@ -123,6 +125,7 @@ export const renderNodeToOutput = (
 
 		const localScrollOffsets = yogaNode.getOverflow() == Yoga.OVERFLOW_SCROLL ? ((yogaNode as any).scrollOffsets as ScrollOffsets) : { offsetTop: 0, offsetLeft: 0};
 
+		const zIndex = (yogaNode as any).zIndex || defaultZIndex;
 		const tempLeft= offsetX + yogaNode.getComputedLeft();
 		const tempTop = offsetY + yogaNode.getComputedTop();
 		const tempWidth = yogaNode.getComputedWidth()
@@ -139,7 +142,7 @@ export const renderNodeToOutput = (
 
 		const applyRegion = (text: string) => `${openRegion}${text}${closeRegion}`;
 
-		const writeAsLines = (output: OutputWriter, x: number, y: number, text: string, hideOverflow?: HideOverflowOptions, transformers?: OutputTransformer[]) => {
+		const writeAsLines = (output: OutputWriter, x: number, y: number, z: number, text: string, hideOverflow?: HideOverflowOptions, transformers?: OutputTransformer[]) => {
 			if (!text) {
 				return;
 			}
@@ -186,7 +189,7 @@ export const renderNodeToOutput = (
 				}
 
 				if (inBounds) {
-					output.write(x, actualY, line);
+					output.write(x, actualY, z, line);
 				}
 			})
 		}
@@ -197,7 +200,7 @@ export const renderNodeToOutput = (
 
 		// Text nodes
 		if (node.nodeName === '#text') {
-			writeAsLines(output, x, y, applyRegion(node.nodeValue), hideOverflow, newTransformers);
+			writeAsLines(output, x, y, zIndex, applyRegion(node.nodeValue), hideOverflow, newTransformers);
 			return;
 		}
 
@@ -229,7 +232,7 @@ export const renderNodeToOutput = (
 				}
 			}
 
-			writeAsLines(output, x, y, applyRegion(text), hideOverflow, newTransformers);
+			writeAsLines(output, x, y, zIndex, applyRegion(text), hideOverflow, newTransformers);
 			return;
 		}
 
@@ -249,7 +252,7 @@ export const renderNodeToOutput = (
 				}
 			}
 
-			writeAsLines(output, x, y, applyRegion(text), hideOverflow, newTransformers);
+			writeAsLines(output, x, y, zIndex, applyRegion(text), hideOverflow, newTransformers);
 			return;
 		}
 
@@ -269,7 +272,8 @@ export const renderNodeToOutput = (
 					index === node.childNodes.length - 1 && node.unstable__regionName ?
 						closeRegionTag(node.unstable__regionName) :
 						undefined,
-				hideOverflow
+				hideOverflow,
+				defaultZIndex: zIndex
 			});
 		}
 	}

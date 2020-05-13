@@ -80,4 +80,19 @@ test('hidden overflow horizontal and vertical', t => {
 
 })
 
+test('asbolute positioned overflow with -3 marginY', t => {
+	const output = renderToString(<Wrapper><Box position='absolute' positionTop={2} positionLeft={2} height={3} overflow='hidden'><Box marginY={-3}><Letters /></Box></Box></Wrapper>);
+	t.is(output, 'Header\nFooter\n  X\n  Y\n  Z', `actual was:\n***\n${output}\n***`);
+})
+
+test('hidden overflow with -3 marginY with absolute over the top nested', t => {
+	const output = renderToString(<Wrapper><Box height={3} overflow='hidden'><Box marginY={-3}><Letters /><Box position='absolute' positionTop={0} positionLeft={0}>ABS!</Box></Box></Box></Wrapper>);
+	t.is(output, 'Header\nX\nY\nZ\nFooter', `actual was:\n***\n${output}\n***`);
+});
+
+test('hidden overflow with -3 marginY with absolute over the top non nested', t => {
+	const output = renderToString(<Wrapper><Box height={3} overflow='hidden'><Box marginY={-3}><Letters /></Box></Box><Box position='absolute' positionTop={0} positionLeft={0}>ABS!</Box></Wrapper>);
+	t.is(output, 'ABS!er\nX\nY\nZ\nFooter', `actual was:\n***\n${output}\n***`);
+});
+
 

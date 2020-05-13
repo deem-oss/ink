@@ -19,6 +19,7 @@ interface OutputConstructorOptions {
 interface Writes {
 	x: number;
 	y: number;
+	z: number;
 	line: string;
 }
 
@@ -36,22 +37,32 @@ export class Output implements OutputWriter {
 		this.height = height;
 	}
 
-	write(x: number, y: number, line: string) {
+	write(x: number, y: number, z: number, line: string) {
 		if (!line) {
 			return;
 		}
 
-		this.writes.push({x, y, line: line});
+		this.writes.push({x, y, z, line: line});
 	}
 
 	get() {
+
+		const stableSort = function <T>(arr: T[], compare: (one: T, two: T) => number): T[]
+		{
+			return arr.map((item, index) => ({item, index}))
+				.sort((a, b) => compare(a.item, b.item) || a.index - b.index)
+				.map(({item}) => item)
+		}
+
 		const output: string[] = [];
 
 		for (let y = 0; y < this.height; y++) {
 			output.push(' '.repeat(this.width));
 		}
 
-		for (const write of this.writes) {
+		const zIndexedWrites = stableSort(this.writes, (one, two) => one.z - two.z);
+
+		for (const write of zIndexedWrites) {
 			const {x, y, line} = write;
 
 			const currentLine = output[y];

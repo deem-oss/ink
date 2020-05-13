@@ -15,6 +15,7 @@ export interface PositionStyles {
 	positionLeft?: number;
 	positionRight?: number;
 	positionBottom?: number;
+	zIndex?: number;
 }
 
 export interface MarginStyles {

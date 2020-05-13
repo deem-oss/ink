@@ -33,6 +33,10 @@ const applyPositionStyles = (node: Yoga.YogaNode, style: PositionStyles) => {
 	if (style.positionTop) {
 		node.setPosition(Yoga.EDGE_TOP, style.positionTop);
 	}
+
+	if (style.zIndex) {
+		(node as any).zIndex = style.zIndex;
+	}
 }
 
 const applyMarginStyles = (node: Yoga.YogaNode, style: MarginStyles) => {
