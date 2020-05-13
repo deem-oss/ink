@@ -30,7 +30,7 @@ export class Output implements OutputWriter {
 		this.output = output;
 	}
 
-	write(x: number, y: number, z: number, line: string) {
+	write(x: number, y: number, _z: number, line: string) {
 		// TODO: z-order ignored because we are not batching writes, only allowed in experimental renderer
 
 		if (!line) {
